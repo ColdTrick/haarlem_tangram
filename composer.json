@@ -1,0 +1,17 @@
+{
+	"name": "coldtrick/haarlem_tangram",
+	"description": "Show vacancies from Tangram on the site",
+	"type": "elgg-plugin",
+	"keywords": ["elgg", "plugin", "vacancy"],
+	"license": "GPL-2.0",
+	"support": {
+		"source": "https://github.com/ColdTrick/haarlem_tangram",
+		"issues": "https://github.com/ColdTrick/haarlem_tangram/issues"
+	},
+	"require": {
+		"composer/installers": "^1.0.8"
+	},
+	"require-dev": {
+		"coldtrick/sniffs": "dev-master"
+	}
+}
