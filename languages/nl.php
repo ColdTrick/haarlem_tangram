@@ -1,5 +1,10 @@
 <?php
 $language = array (
+  'haarlem_tangram:settings:page_owner' => '(Optioneel) Je kunt een groep GUID configureren om de pagina eigenaar te zijn voor de vacatures.',
+  'haarlem_tangram:settings:page_owner:description' => 'Als je hier een groep GUID opgeeft zullen de vacatures worden getoond in de context van die groep.',
+  'haarlem_tangram:widget:vacancies:title' => 'Vacatures',
+  'haarlem_tangram:widget:vacancies:description' => 'Toon een lijst met vacatures',
+  'haarlem_tangram:widget:vacancy_category' => 'Welke vacatures moeten er worden getoond',
   'haarlem_tangram:no_vacancies' => 'Op dit moment zijn er geen vacatures',
   'haarlem_tangram:not_found' => 'De gevraagde vacature kon niet worden gevonden',
   'haarlem_tangram:last_updated' => 'Laatst bijgewerkt %s',
