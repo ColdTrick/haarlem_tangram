@@ -103,6 +103,13 @@ class TangramVacancy extends ElggObject {
 		return $this->xml_source;
 	}
 	
+	/**
+	 * Get an XML path from the source xml
+	 *
+	 * @param array $path the path to get
+	 *
+	 * @return false|SimpleXMLElement
+	 */
 	public function getXMLPath($path = array()) {
 		
 		if (empty($path) || !is_array($path)) {
@@ -123,5 +130,87 @@ class TangramVacancy extends ElggObject {
 		}
 		
 		return $xml;
+	}
+	
+	/**
+	 * Check if the vacancy is internal
+	 *
+	 * @return bool
+	 */
+	public function isInternal() {
+		
+		$start_date = $this->getXMLPath(array(
+			'Administratie',
+			'Datum_publ_internstart',
+		));
+		
+		if (empty($start_date)) {
+			// no internal start date
+			return false;
+		}
+		
+		$start_date = strtotime($start_date);
+		if ($start_date > time()) {
+			// start date is in the future
+			return false;
+		}
+		
+		$end_date = $this->getXMLPath(array(
+			'Administratie',
+			'Datum_publ_internstop',
+		));
+		if (empty($end_date)) {
+			// no end date
+			return true;
+		}
+		
+		$end_date = strtotime($end_date);
+		if ($end_date < time()) {
+			// end date passed
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Check if the vacancy is external
+	 *
+	 * @return bool
+	 */
+	public function isExternal() {
+		
+		$start_date = $this->getXMLPath(array(
+			'Administratie',
+			'Datum_publ_bpstart',
+		));
+		
+		if (empty($start_date)) {
+			// no internal start date
+			return false;
+		}
+		
+		$start_date = strtotime($start_date);
+		if ($start_date > time()) {
+			// start date is in the future
+			return false;
+		}
+		
+		$end_date = $this->getXMLPath(array(
+			'Administratie',
+			'Datum_publ_stop',
+		));
+		if (empty($end_date)) {
+			// no end date
+			return true;
+		}
+		
+		$end_date = strtotime($end_date);
+		if ($end_date < time()) {
+			// end date passed
+			return false;
+		}
+		
+		return true;
 	}
 }

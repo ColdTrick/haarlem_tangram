@@ -119,10 +119,20 @@ if ($full_view) {
 			'Solliciterenbij',
 			'URLOnlineFormulier',
 		));
+		
 		if (!empty($link)) {
+			$link = (string) $link;
+			
+			if ($entity->isInternal()) {
+				$additional_params = array(
+					'location' => 2,
+				);
+				$link = elgg_http_add_url_query_elements($link, $additional_params);
+			}
+			
 			$content .= elgg_view('output/url', array(
 				'text' => elgg_echo('haarlem_tangram:function:online_link'),
-				'href' => (string) $link,
+				'href' => $link,
 				'target' => '_blank',
 			));
 		}
