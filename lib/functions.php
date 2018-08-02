@@ -6,7 +6,7 @@
 /**
  * Cache the tangram vacancy xml
  *
- * @return void
+ * @return bool
  */
 function haarlem_tangram_cache_xml() {
 	
@@ -14,12 +14,12 @@ function haarlem_tangram_cache_xml() {
 	$tangram_url = haarlem_tangram_get_setting('tangram_url');
 	
 	if (empty($tangram_url)) {
-		return;
+		return false;
 	}
 	
 	if ($last_try > (time() - (60 * 60))) {
 		// prevent deadloop tries
-		return;
+		return false;
 	}
 	
 	// store last try to prevent deadloops
@@ -42,7 +42,7 @@ function haarlem_tangram_cache_xml() {
 	// verify output
 	if (elgg_extract('http_code', $curl_info) !== 200 || stristr(elgg_extract('content_type', $curl_info), 'text/xml') === false) {
 		// something went wrong
-		return;
+		return false;
 	}
 	
 	// save output
@@ -57,6 +57,8 @@ function haarlem_tangram_cache_xml() {
 	
 	// set last success update
 	elgg_set_plugin_setting('tangram_last_update_success', time(), 'haarlem_tangram');
+	
+	return true;
 }
 
 /**
@@ -93,7 +95,7 @@ function haarlem_tangram_get_setting($setting) {
 /**
  * Load the xml to be used in furter processes
  *
- *
+ * @return false|SimpleXMLElement
  */
 function haarlem_tangram_get_xml() {
 	static $xml_cache;
@@ -257,7 +259,7 @@ function haarlem_tangram_xml_vacancy_to_entity($vacancy) {
 /**
  * Find a vacancy in the xml
  *
- * @param stirng $vacaturenummer the vacancy number
+ * @param string $vacaturenummer the vacancy number
  *
  * @return false|TangramVacancy
  */
@@ -300,4 +302,114 @@ function haarlem_tangram_get_page_owner_guid() {
 	}
 	
 	return $page_owner_guid;
+}
+
+/**
+ * Store vacaturenummers from the XML in a cache file to find out if new vacancies were added
+ *
+ * @return false|string[]
+ */
+function haarlem_tangram_store_vacaturenummers() {
+	
+	$xml = haarlem_tangram_get_xml();
+	if (empty($xml)) {
+		return false;
+	}
+	
+	$stored = [];
+	$new = [];
+	
+	$plugin = elgg_get_plugin_from_id('haarlem_tangram');
+	$fh = new ElggFile();
+	$fh->owner_guid = $plugin->getGUID();
+	$fh->setFilename('vacaturenummer.cache');
+	
+	if ($fh->exists()) {
+		$stored = unserialize($fh->grabFile());
+	}
+	
+	// go through the xml to find all the numbers
+	foreach ($xml->Vacature as $xml_vacancy) {
+		
+		$vacaturenummer = (string) $xml_vacancy->Vacaturenummer;
+		if (in_array($vacaturenummer, $stored)) {
+			continue;
+		}
+		
+		$vacancy = haarlem_tangram_xml_vacancy_to_entity($xml_vacancy);
+		if (!$vacancy->isInternal() && !$vacancy->isExternal()) {
+			// not open (internaly or externaly)
+			continue;
+		}
+		
+		$new[] = $vacaturenummer;
+		$stored[] = $vacaturenummer;
+	}
+	
+	$fh->open('write');
+	$fh->write(serialize($stored));
+	$fh->close();
+	
+	return $new;
+}
+
+/**
+ * Notify all group members about new vacancies
+ *
+ * @param string[] $vacaturenummers new vacaturenummers
+ *
+ * @return bool
+ */
+function haarlem_tangram_notify_group_members($vacaturenummers) {
+	global $NOTIFICATION_HANDLERS;
+	
+	if (empty($vacaturenummers) || !is_array($vacaturenummers)) {
+		return false;
+	}
+	
+	$group_guid = haarlem_tangram_get_page_owner_guid();
+	if (empty($group_guid)) {
+		return false;
+	}
+	
+	$entity = get_entity($group_guid);
+	if (!$entity instanceof ElggGroup) {
+		return false;
+	}
+	
+	$new_part = '';
+	foreach ($vacaturenummers as $nummer) {
+		$vacancy = haarlem_tangram_find_vacancy($nummer);
+		if (empty($vacancy)) {
+			// shouldn't happen
+			continue;
+		}
+		
+		$new_part .= "- {$vacancy->title} ({$vacancy->getURL()})" . PHP_EOL;
+	}
+	
+	$subject = elgg_echo('haarlem_tangram:notify:new_vacancy:subject');
+	
+	foreach ($NOTIFICATION_HANDLERS as $method => $foo) {
+		$options = [
+			'type' => 'user',
+			'limit' => false,
+			'relationship' => "notify{$method}",
+			'relationship_guid' => $entity->getGUID(),
+			'inverse_relationship' => true,
+		];
+		$batch = new ElggBatch('elgg_get_entities_from_relationship', $options);
+		/* @var $user ElggUser */
+		foreach ($batch as $user) {
+			$body = elgg_echo('haarlem_tangram:notify:new_vacancy:body', [
+				$user->name,
+				$new_part,
+				elgg_normalize_url('vacaturebank'),
+			]);
+			
+			notify_user($user->guid, $entity->guid, $subject, $body, null, [$method]);
+		}
+	}
+	
+	return true;
 }

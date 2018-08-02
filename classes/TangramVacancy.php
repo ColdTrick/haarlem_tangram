@@ -17,8 +17,7 @@ class TangramVacancy extends ElggObject {
 	}
 	
 	/**
-	 * (non-PHPdoc)
-	 * @see ElggObject::save()
+	 * {@inheritDoc}
 	 */
 	public function save() {
 		// for now can't be saved
@@ -26,25 +25,21 @@ class TangramVacancy extends ElggObject {
 	}
 	
 	/**
-	 * (non-PHPdoc)
-	 * @see ElggEntity::getURL()
+	 * {@inheritDoc}
 	 */
 	public function getURL() {
 		
-		if (isset($this->vacaturenummer)) {
-			return "vacaturebank/view/{$this->vacaturenummer}";
-		} elseif (!empty($this->xml_source)) {
-			$xml = $this->getXmlSource();
-			
-			$vacaturenummer = $xml->Vacaturenummer;
-			if (!empty($vacaturenummer)) {
-				return "vacaturebank/view/{$vacaturenummer}";
-			}
+		$vacaturenummer = $this->getVacatureNummer();
+		if ($vacaturenummer === false) {
+			return false;
 		}
 		
-		return false;
+		return elgg_normalize_url("vacaturebank/view/{$vacaturenummer}");
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public function getIconURL($size = 'medium') {
 		$icon_url = '_graphics/spacer.gif';
 		
@@ -81,6 +76,29 @@ class TangramVacancy extends ElggObject {
 		}
 		
 		return $icon_url;
+	}
+	
+	/**
+	 * Get the vacatuenummer (unique ID) from the XML
+	 *
+	 * @return false|string
+	 */
+	public function getVacatureNummer() {
+		
+		if (isset($this->vacaturenummer)) {
+			return $this->vacaturenummer;
+		} elseif (!empty($this->xml_source)) {
+			$xml = $this->getXmlSource();
+			
+			$vacaturenummer = $xml->Vacaturenummer;
+			if (!empty($vacaturenummer)) {
+				$this->vacaturenummer = $vacaturenummer;
+				
+				return $this->vacaturenummer;
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -186,7 +204,7 @@ class TangramVacancy extends ElggObject {
 		));
 		
 		if (empty($start_date)) {
-			// no internal start date
+			// no external start date
 			return false;
 		}
 		

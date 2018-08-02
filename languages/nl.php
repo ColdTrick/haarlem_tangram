@@ -1,5 +1,13 @@
 <?php
 $language = array (
+  'haarlem_tangram:notify:new_vacancy:subject' => 'Nieuwe vacatures beschikbaar',
+  'haarlem_tangram:notify:new_vacancy:body' => 'Beste %s,
+
+De volgende nieuwe vacatures zijn nu beschikbaar:
+%s
+
+Om alle vacatures te bekijken, klik hier:
+%s',
   'haarlem_tangram:settings:page_owner' => '(Optioneel) Je kunt een groep GUID configureren om de pagina eigenaar te zijn voor de vacatures.',
   'haarlem_tangram:settings:page_owner:description' => 'Als je hier een groep GUID opgeeft zullen de vacatures worden getoond in de context van die groep.',
   'haarlem_tangram:widget:vacancies:title' => 'Vacatures',

@@ -16,7 +16,18 @@
 function haarlem_tangram_hourly_cron_handler($hook, $type, $return_value, $params) {
 	
 	// cache the tangram XML
-	haarlem_tangram_cache_xml();
+	$cached = haarlem_tangram_cache_xml();
+	if (!$cached) {
+		return;
+	}
+	
+	// store vacaturenummers to find if new vacancies were added
+	$vacaturenummers = haarlem_tangram_store_vacaturenummers();
+	if (empty($vacaturenummers)) {
+		return;
+	}
+	
+	haarlem_tangram_notify_group_members($vacaturenummers);
 }
 
 /**

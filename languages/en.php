@@ -36,6 +36,16 @@ $english = array(
 	'haarlem_tangram:widget:vacancies:title' => "Vacancies",
 	'haarlem_tangram:widget:vacancies:description' => "Show a listing of vacancies",
 	'haarlem_tangram:widget:vacancy_category' => "Which vacancies to show",
+	
+	// notify about new vacancies
+	'haarlem_tangram:notify:new_vacancy:subject' => "New vacancies available",
+	'haarlem_tangram:notify:new_vacancy:body' => "Hi %s,
+
+The following new vacancies are now available:
+%s
+
+To view all vacancies, click here:
+%s",
 );
 
 add_translation('en', $english);
